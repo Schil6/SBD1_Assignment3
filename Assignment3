@@ -1,11 +1,57 @@
-# Load necessary libraries
+# Step 1: Install and load required libraries
+install.packages("rvest")
+library(rvest)
+library(dplyr)
 library(shiny)
 library(shinydashboard)
 library(leaflet)
 
+# Step 2: Specify the URL
+url <- "https://de.wikipedia.org/wiki/Liste_der_Hochschulen_in_der_Schweiz"
+
+# Step 3: Send HTTP request and retrieve webpage content
+webpage <- read_html(url)
+
+# Step 4: Extract information using CSS selectors and store in variables
+hochschulen <- html_text(html_nodes(webpage, "ul:nth-child(22) ul a:nth-child(1)"))
+
+# Step 5: Create a data frame with the extracted information
+data <- data.frame(Hochschulen = hochschulen)
+
+# Add new columns to the data frame
+data <- mutate(data, lengths = NA, widths = NA)
+
+# Update lengths and widths for each university
+data$lengths[data$Hochschulen == "Berner Fachhochschule, Departement Technik und Informatik"] <- 47.14319574423438
+data$widths[data$Hochschulen == "Berner Fachhochschule, Departement Technik und Informatik"] <- 7.2429091230053375
+
+data$lengths[data$Hochschulen == "Berner Fachhochschule, Departement Architektur, Holz und Bau"] <- 47.158889648267476
+data$widths[data$Hochschulen == "Berner Fachhochschule, Departement Architektur, Holz und Bau"] <- 7.276606148807507
+
+data$lengths[data$Hochschulen == "Berner Fachhochschule, Departement Wirtschaft"] <- 46.948007654829325
+data$widths[data$Hochschulen == "Berner Fachhochschule, Departement Wirtschaft"] <- 7.440202572889019
+
+data$lengths[data$Hochschulen == "Berner Fachhochschule, Departement Gesundheit"] <- 46.94494832513707
+data$widths[data$Hochschulen == "Berner Fachhochschule, Departement Gesundheit"] <- 7.432348048603011
+
+data$lengths[data$Hochschulen == "Berner Fachhochschule, Departement Soziale Arbeit"] <- 46.95279786507324
+data$widths[data$Hochschulen == "Berner Fachhochschule, Departement Soziale Arbeit"] <- 7.435352770241892
+
+data$lengths[data$Hochschulen == "Hochschule der Künste Bern"] <- 46.9485353179818
+data$widths[data$Hochschulen == "Hochschule der Künste Bern"] <- 7.391514082959399
+
+data$lengths[data$Hochschulen == "Hochschule für Agrar-, Forst- und Lebensmittelwissenschaften"] <- 46.991520253763895
+data$widths[data$Hochschulen == "Hochschule für Agrar-, Forst- und Lebensmittelwissenschaften"] <- 7.467585514420727
+
+data$lengths[data$Hochschulen == "Eidgenössische Hochschule für Sport Magglingen"] <- 47.13816585414153
+data$widths[data$Hochschulen == "Eidgenössische Hochschule für Sport Magglingen"] <- 7.2138379083249955
+
+# Print the updated data frame
+print(data)
+
 # UI
 ui <- dashboardPage(
-  dashboardHeader(title = "My Journey"),  # Set title
+  dashboardHeader(title = "My Journey"),
   dashboardSidebar(
     sidebarMenu(
       menuItem("Work", tabName = "work", icon = icon("briefcase")),
@@ -21,61 +67,75 @@ ui <- dashboardPage(
               fluidRow(
                 conditionalPanel(
                   condition = "input.year >= 2013 && input.year <= 2016",
-                  infoBox("Staatskanzlei Bern", "This is where I did my apprenticeship. Within 3 years I have passed here the apprenticeship to the KV.", icon = icon("building"))
+                  infoBox("Staatskanzlei Bern", "I did my apprenticeship at the Staatskanzlei des Kantons Bern.<br>Within 3 years I have passed here the apprenticeship to the KV.", icon = icon("building"), width = 12)
                 ),
                 conditionalPanel(
                   condition = "input.year >= 2017 && input.year <= 2022",
-                  infoBox("Valiant Gümligen", "I worked here 5 years. My work was the ebanking support of the valiant clients.", icon = icon("building"))
+                  infoBox("Valiant Gümligen", "I worked here 5 years.<br>I supported the ebanking customers of the valiant bank", icon = icon("building"), width = 12)
                 ),
                 conditionalPanel(
                   condition = "input.year >= 2023",
-                  infoBox("Swisscom Ittigen", "This is my current workplace. i manage all the banks that swisscom supports in the user management module.", icon = icon("building"))
+                  infoBox("Swisscom Ittigen", "This is my current workplace.<br>I manage all the banks that Swisscom supports in the user management module.", icon = icon("building"), width = 12)
                 )
               )
       ),
-      
       # Second tab content
       tabItem(tabName = "study",
               h2("Where I study"),
-              leafletOutput("study_map")
+              infoBox("Berner Fachhochschule, Departement Wirtschaft", "Berner Fachhochschule is where I study,<br>specifically the Departement Wirtschaft.", icon = icon("university"), width = 12),
+              p("Other Departements from the BFH you could study:"),
+              selectInput("bfh_departments", "Departments", choices = data$Hochschulen),
+              fluidRow(
+                column(6, leafletOutput("study_map")),
+                column(6, tableOutput("hochschulen_table"))
+              )
       )
     )
   )
 )
 
 # Server
-server <- function(input, output) { 
+server <- function(input, output) {
   # Map with designated locations
   output$work_map <- renderLeaflet({
     leaflet() %>%
       addTiles() %>%
-      addMarkers(lng=7.470749508717667, lat=46.97533998010899, popup="Swisscom Ittigen", layerId="Swisscom") %>%
-      addMarkers(lng=7.510941036803901, lat=46.93314610459478, popup="Valiant Gümligen", layerId="Valiant") %>%
-      addMarkers(lng=7.453143498990747, lat=46.948863707915436, popup="Staatskanzlei Bern", layerId="Staatskanzlei") 
+      addMarkers(lng = 7.470749508717667, lat = 46.97533998010899, popup = "Swisscom Ittigen", layerId = "Swisscom") %>%
+      addMarkers(lng = 7.510941036803901, lat = 46.93314610459478, popup = "Valiant Gümligen", layerId = "Valiant") %>%
+      addMarkers(lng = 7.453143498990747, lat = 46.948863707915436, popup = "Staatskanzlei Bern", layerId = "Staatskanzlei") %>%
+      setView(lng = 7.470749508717667, lat = 46.97533998010899, zoom = 10) %>%
+      setMaxBounds(lng1 = 6.5, lat1 = 46.3, lng2 = 8.5, lat2 = 47.6)
   })
   
   # Study map
   output$study_map <- renderLeaflet({
+    selected_dept <- data[data$Hochschulen == input$bfh_departments, ]
     leaflet() %>%
       addTiles() %>%
-      addMarkers(lng=7.440781932298222, lat=46.94256550221816, popup="Study Location", layerId="Study")
+      addMarkers(lng = selected_dept$widths, lat = selected_dept$lengths, popup = selected_dept$Hochschulen) %>%
+      setView(lng = 7.440781932298222, lat = 46.94256550221816, zoom = 10) %>%
+      setMaxBounds(lng1 = 6.5, lat1 = 46.3, lng2 = 8.5, lat2 = 47.6)
+  })
+  
+  # Display the extracted data frame
+  output$hochschulen_table <- renderTable({
+    data
   })
   
   observe({
     map <- leafletProxy("work_map")
     map %>% clearMarkers()
-    if(input$year >= 2013 & input$year <= 2016) {
-      map %>% addMarkers(lng=7.453143498990747, lat=46.948863707915436, popup="Staatskanzlei Bern", layerId="Staatskanzlei") 
-    } 
-    if(input$year >= 2017 & input$year <= 2022) {
-      map %>% addMarkers(lng=7.510941036803901, lat=46.93314610459478, popup="Valiant Gümligen", layerId="Valiant") 
+    if (input$year >= 2013 & input$year <= 2016) {
+      map %>% addMarkers(lng = 7.453143498990747, lat = 46.948863707915436, popup = "Staatskanzlei Bern", layerId = "Staatskanzlei")
     }
-    if(input$year >= 2023) {
-      map %>% addMarkers(lng=7.470749508717667, lat=46.97533998010899, popup="Swisscom Ittigen", layerId="Swisscom") 
+    if (input$year >= 2017 & input$year <= 2022) {
+      map %>% addMarkers(lng = 7.510941036803901, lat = 46.93314610459478, popup = "Valiant Gümligen", layerId = "Valiant")
+    }
+    if (input$year >= 2023) {
+      map %>% addMarkers(lng = 7.470749508717667, lat = 46.97533998010899, popup = "Swisscom Ittigen", layerId = "Swisscom")
     }
   })
 }
 
-# Run the application 
+# Run the application
 shinyApp(ui = ui, server = server)
-
