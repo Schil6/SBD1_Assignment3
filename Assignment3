@@ -1,1 +1,81 @@
+# Load necessary libraries
+library(shiny)
+library(shinydashboard)
+library(leaflet)
+
+# UI
+ui <- dashboardPage(
+  dashboardHeader(title = "My Journey"),  # Set title
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Work", tabName = "work", icon = icon("briefcase")),
+      menuItem("Study", tabName = "study", icon = icon("book"))
+    )
+  ),
+  dashboardBody(
+    tabItems(
+      # First tab content
+      tabItem(tabName = "work",
+              sliderInput("year", "Year:", min = 2013, max = 2023, value = 2013, step = 1, animate = animationOptions(interval = 1000)),
+              leafletOutput("work_map"),
+              fluidRow(
+                conditionalPanel(
+                  condition = "input.year >= 2013 && input.year <= 2016",
+                  infoBox("Staatskanzlei Bern", "This is where I did my apprenticeship. Within 3 years I have passed here the apprenticeship to the KV.", icon = icon("building"))
+                ),
+                conditionalPanel(
+                  condition = "input.year >= 2017 && input.year <= 2022",
+                  infoBox("Valiant Gümligen", "I worked here 5 years. My work was the ebanking support of the valiant clients.", icon = icon("building"))
+                ),
+                conditionalPanel(
+                  condition = "input.year >= 2023",
+                  infoBox("Swisscom Ittigen", "This is my current workplace. i manage all the banks that swisscom supports in the user management module.", icon = icon("building"))
+                )
+              )
+      ),
+      
+      # Second tab content
+      tabItem(tabName = "study",
+              h2("Where I study"),
+              leafletOutput("study_map")
+      )
+    )
+  )
+)
+
+# Server
+server <- function(input, output) { 
+  # Map with designated locations
+  output$work_map <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      addMarkers(lng=7.470749508717667, lat=46.97533998010899, popup="Swisscom Ittigen", layerId="Swisscom") %>%
+      addMarkers(lng=7.510941036803901, lat=46.93314610459478, popup="Valiant Gümligen", layerId="Valiant") %>%
+      addMarkers(lng=7.453143498990747, lat=46.948863707915436, popup="Staatskanzlei Bern", layerId="Staatskanzlei") 
+  })
+  
+  # Study map
+  output$study_map <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      addMarkers(lng=7.440781932298222, lat=46.94256550221816, popup="Study Location", layerId="Study")
+  })
+  
+  observe({
+    map <- leafletProxy("work_map")
+    map %>% clearMarkers()
+    if(input$year >= 2013 & input$year <= 2016) {
+      map %>% addMarkers(lng=7.453143498990747, lat=46.948863707915436, popup="Staatskanzlei Bern", layerId="Staatskanzlei") 
+    } 
+    if(input$year >= 2017 & input$year <= 2022) {
+      map %>% addMarkers(lng=7.510941036803901, lat=46.93314610459478, popup="Valiant Gümligen", layerId="Valiant") 
+    }
+    if(input$year >= 2023) {
+      map %>% addMarkers(lng=7.470749508717667, lat=46.97533998010899, popup="Swisscom Ittigen", layerId="Swisscom") 
+    }
+  })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
 
