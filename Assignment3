@@ -67,22 +67,22 @@ ui <- dashboardPage(
               fluidRow(
                 conditionalPanel(
                   condition = "input.year >= 2013 && input.year <= 2016",
-                  infoBox("Staatskanzlei Bern", "I did my apprenticeship at the Staatskanzlei des Kantons Bern.<br>Within 3 years I have passed here the apprenticeship to the KV.", icon = icon("building"), width = 12)
+                  infoBox("Staatskanzlei Bern", "I did my apprenticeship at the Staatskanzlei des Kantons Bern. Within 3 years I have passed here the apprenticeship to the KV.", icon = icon("building"), width = 12)
                 ),
                 conditionalPanel(
                   condition = "input.year >= 2017 && input.year <= 2022",
-                  infoBox("Valiant Gümligen", "I worked here 5 years.<br>I supported the ebanking customers of the valiant bank", icon = icon("building"), width = 12)
+                  infoBox("Valiant Gümligen", "I worked here 5 years.I supported the ebanking customers of the valiant bank", icon = icon("building"), width = 12)
                 ),
                 conditionalPanel(
                   condition = "input.year >= 2023",
-                  infoBox("Swisscom Ittigen", "This is my current workplace.<br>I manage all the banks that Swisscom supports in the user management module.", icon = icon("building"), width = 12)
+                  infoBox("Swisscom Ittigen", "This is my current workplace.I manage all the banks that Swisscom supports in the user management module.", icon = icon("building"), width = 12)
                 )
               )
       ),
       # Second tab content
       tabItem(tabName = "study",
               h2("Where I study"),
-              infoBox("Berner Fachhochschule, Departement Wirtschaft", "Berner Fachhochschule is where I study,<br>specifically the Departement Wirtschaft.", icon = icon("university"), width = 12),
+              infoBox("Berner Fachhochschule, Departement Wirtschaft", "Berner Fachhochschule is where I study,specifically the Departement Wirtschaft.", icon = icon("university"), width = 12),
               p("Other Departements from the BFH you could study:"),
               selectInput("bfh_departments", "Departments", choices = data$Hochschulen),
               fluidRow(
